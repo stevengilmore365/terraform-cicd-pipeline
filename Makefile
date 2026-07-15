@@ -1,6 +1,7 @@
 .PHONY: init validate lint scan plan clean help
 
 ENV ?= dev
+ROOT_DIR := $(shell pwd)
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -12,8 +13,8 @@ validate: ## Run terraform validate on all environments
 	@bash scripts/validate.sh
 
 lint: ## Run tflint on all modules
-	tflint --init --config .tflint.hcl
-	tflint --config .tflint.hcl --recursive terraform
+	tflint --init --config "$(ROOT_DIR)/.tflint.hcl"
+	@find terraform -name '*.tf' -printf '%h\n' | sort -u | xargs -I {} sh -c 'echo "  Linting: {}"; tflint --config "$(ROOT_DIR)/.tflint.hcl" --chdir {} || exit 1'
 
 scan: ## Run tfsec security scan
 	tfsec terraform --format wide

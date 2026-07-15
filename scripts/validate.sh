@@ -52,8 +52,10 @@ done
 echo ""
 echo "--- TFLint ---"
 if command -v tflint &> /dev/null; then
-  tflint --init --config "$ROOT_DIR/.tflint.hcl" 2>/dev/null
-  if tflint --config "$ROOT_DIR/.tflint.hcl" --recursive "$ROOT_DIR/terraform" 2>&1; then
+  tflint --init --config "$ROOT_DIR/.tflint.hcl"
+  if find "$ROOT_DIR/terraform" -name '*.tf' -printf '%h\n' | sort -u | while read -r dir; do
+    tflint --config "$ROOT_DIR/.tflint.hcl" --chdir "$dir" || exit 1
+  done; then
     log "tflint: no issues"
   else
     warn "tflint: found issues (review above)"
@@ -66,7 +68,7 @@ fi
 echo ""
 echo "--- tfsec ---"
 if command -v tfsec &> /dev/null; then
-  if tfsec "$ROOT_DIR/terraform" --format wide 2>&1; then
+  if tfsec "$ROOT_DIR/terraform" --format text 2>&1; then
     log "tfsec: no issues"
   else
     warn "tfsec: found issues (review above)"
@@ -105,7 +107,7 @@ fi
 echo ""
 echo "--- YAML Validation ---"
 if command -v python3 &> /dev/null; then
-  python3 -c "
+  if python3 -c "
 import yaml, glob, sys
 errors = []
 for f in glob.glob('$ROOT_DIR/.github/workflows/*.yml'):
@@ -118,7 +120,11 @@ if errors:
     for e in errors:
         print(e)
     sys.exit(1)
-" && log "YAML: all workflows valid" || fail "YAML: invalid workflows found"
+"; then
+    log "YAML: all workflows valid"
+  else
+    fail "YAML: invalid workflows found"
+  fi
 else
   warn "python3 not available — skipping YAML validation"
 fi
