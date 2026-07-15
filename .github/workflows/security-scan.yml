@@ -40,17 +40,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Build Docker image
         run: docker build -t app:${{ github.sha }} .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.36.0
-        with:
-          image-ref: 'app:${{ github.sha }}'
-          format: 'sarif'
-          output: 'trivy-image-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
+        run: |
+          trivy image \
+            --format sarif \
+            --output trivy-image-results.sarif \
+            --severity CRITICAL,HIGH \
+            --exit-code 0 \
+            app:${{ github.sha }}
 
       - name: Upload Trivy results
         uses: github/codeql-action/upload-sarif@v4
