@@ -31,6 +31,7 @@ variable "tags" {
 }
 
 variable "kms_key_arn" {
-  description = "KMS key ARN for EKS secrets encryption"
+  description = "KMS key ARN for EKS secrets encryption. Required in production; create via aws_kms_key before provisioning."
   type        = string
+  default     = null
 }

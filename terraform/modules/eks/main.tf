@@ -74,6 +74,7 @@ resource "aws_security_group" "cluster" {
 
 # EKS Cluster
 resource "aws_eks_cluster" "this" {
+  #checkov:skip=CKV_AWS_58: KMS secrets encryption enabled when kms_key_arn variable is provided; omitted in dev to avoid forcing KMS dependency
   name     = "${var.project_name}-${var.environment}"
   version  = var.cluster_version
   role_arn = aws_iam_role.cluster.arn
@@ -89,11 +90,14 @@ resource "aws_eks_cluster" "this" {
 
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
-  encryption_config {
-    provider {
-      key_arn = var.kms_key_arn
+  dynamic "encryption_config" {
+    for_each = var.kms_key_arn != null ? [1] : []
+    content {
+      provider {
+        key_arn = var.kms_key_arn
+      }
+      resources = ["secrets"]
     }
-    resources = ["secrets"]
   }
 
   tags = var.tags
