@@ -1,0 +1,4 @@
+# Demo app dependencies — this Dockerfile exists to demonstrate Trivy container scanning in CI
+# In a real project, add your actual dependencies here
+flask==3.1.1
+gunicorn==23.0.0
