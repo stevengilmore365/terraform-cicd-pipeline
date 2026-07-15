@@ -58,7 +58,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = var.azs[count.index]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = merge(var.tags, {
     Name = "${var.project_name}-public-${var.azs[count.index]}"
@@ -133,7 +133,8 @@ resource "aws_flow_log" "this" {
 
 resource "aws_cloudwatch_log_group" "flow_log" {
   name              = "/aws/vpc/flow-log/${var.project_name}"
-  retention_in_days = 30
+  retention_in_days = 365
+  kms_key_id        = var.kms_key_arn
 
   tags = var.tags
 }
@@ -172,9 +173,22 @@ resource "aws_iam_role_policy" "flow_log" {
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams"
         ]
-        Effect   = "Allow"
-        Resource = "*"
+        Effect = "Allow"
+        Resource = [
+          aws_cloudwatch_log_group.flow_log.arn,
+          "${aws_cloudwatch_log_group.flow_log.arn}:*"
+        ]
       }
     ]
+  })
+}
+
+# Restrict the default security group — Checkov CKV2_AWS_12
+# Default SGs are auto-created by AWS; removing all rules prevents accidental use.
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.this.id
+
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-default-sg-restricted"
   })
 }

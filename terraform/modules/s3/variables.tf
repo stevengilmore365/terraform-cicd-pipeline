@@ -13,3 +13,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "kms_key_id" {
+  description = "KMS key ID for S3 SSE-KMS encryption. If null, falls back to AES256."
+  type        = string
+  default     = null
+}

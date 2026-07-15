@@ -21,11 +21,16 @@ variable "subnet_ids" {
 variable "cluster_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.28"
+  default     = "1.30"
 }
 
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "kms_key_arn" {
+  description = "KMS key ARN for EKS secrets encryption"
+  type        = string
 }

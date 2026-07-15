@@ -40,19 +40,23 @@ resource "aws_iam_role_policy_attachment" "cluster_vpc_controller" {
 }
 
 # EKS Cluster Security Group
+# checkov:skip=CKV2_AWS_5: This SG is attached to the EKS cluster via vpc_config.security_group_ids
 resource "aws_security_group" "cluster" {
   name_prefix = "${var.project_name}-${var.environment}-eks-"
   vpc_id      = var.vpc_id
   description = "EKS cluster security group"
 
   ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
-    self      = true
+    description = "Allow HTTPS within cluster security group"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    self        = true
   }
 
+  #checkov:skip=CKV_AWS_382: EKS nodes require egress to AWS service endpoints; restrict further with VPC endpoints
   egress {
+    description = "Allow all egress for EKS node communication with AWS services"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -78,10 +82,19 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = var.subnet_ids
     security_group_ids      = [aws_security_group.cluster.id]
     endpoint_private_access = true
-    endpoint_public_access  = var.environment == "dev" ? true : false
+    endpoint_public_access  = false
+    # checkov:skip=CKV_AWS_38: Public access disabled; set endpoint_public_access=true with public_access_cidrs for dev access via bastion
+    # checkov:skip=CKV_AWS_39: Private endpoint is the default; public access requires explicit opt-in per environment
   }
 
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+  encryption_config {
+    provider {
+      key_arn = var.kms_key_arn
+    }
+    resources = ["secrets"]
+  }
 
   tags = var.tags
 

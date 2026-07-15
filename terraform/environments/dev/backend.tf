@@ -22,9 +22,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "terraform-cicd-pipeline"
-      ManagedBy   = "terraform"
-      Repository  = "terraform-cicd-pipeline"
+      Project    = "terraform-cicd-pipeline"
+      ManagedBy  = "terraform"
+      Repository = "terraform-cicd-pipeline"
     }
   }
 }

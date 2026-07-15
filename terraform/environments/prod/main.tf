@@ -37,7 +37,7 @@ module "eks" {
   environment     = "prod"
   vpc_id          = module.vpc.vpc_id
   subnet_ids      = module.vpc.private_subnet_ids
-  cluster_version = "1.28"
+  cluster_version = "1.31"
 
   tags = {
     Environment = "prod"
