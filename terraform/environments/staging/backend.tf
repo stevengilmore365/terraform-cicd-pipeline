@@ -9,10 +9,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "terraform-state-cicd-pipeline"
+    bucket         = "cicd-pipeline-tfstate-093468663320"
     key            = "staging/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "terraform-locks"
+    dynamodb_table = "cicd-pipeline-locks"
     encrypt        = true
   }
 }
