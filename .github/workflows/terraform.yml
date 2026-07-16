@@ -58,6 +58,12 @@ jobs:
           tflint --init
           find terraform -name '*.tf' -printf '%h\n' | sort -u | xargs -I {} sh -c 'tflint --config "$(pwd)/.tflint.hcl" --chdir "{}" || exit 1'
 
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: terraform
+          soft_fail: false
+
   plan:
     name: 'Terraform Plan (${{ matrix.environment }})'
     needs: validate
