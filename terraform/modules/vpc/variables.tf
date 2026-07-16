@@ -12,13 +12,19 @@ variable "cidr_block" {
 variable "public_subnet_cidrs" {
   description = "CIDR blocks for public subnets"
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+  default     = null
 }
 
 variable "private_subnet_cidrs" {
   description = "CIDR blocks for private subnets"
   type        = list(string)
-  default     = ["10.0.10.0/24", "10.0.11.0/24"]
+  default     = null
+}
+
+variable "environment" {
+  description = "Environment name for resource naming"
+  type        = string
+  default     = "dev"
 }
 
 variable "azs" {
@@ -37,4 +43,9 @@ variable "kms_key_arn" {
   description = "KMS key ARN for CloudWatch log group encryption"
   type        = string
   default     = null
+}
+
+locals {
+  public_subnet_cidrs  = var.public_subnet_cidrs != null ? var.public_subnet_cidrs : [for i in range(length(var.azs)) : cidrsubnet(var.cidr_block, 8, i + 1)]
+  private_subnet_cidrs = var.private_subnet_cidrs != null ? var.private_subnet_cidrs : [for i in range(length(var.azs)) : cidrsubnet(var.cidr_block, 8, i + 10)]
 }

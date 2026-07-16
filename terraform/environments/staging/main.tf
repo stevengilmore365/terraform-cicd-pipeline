@@ -4,6 +4,7 @@ module "vpc" {
 
   project_name = var.project_name
   cidr_block   = "10.1.0.0/16"
+  environment  = "staging"
   azs          = ["us-east-1a", "us-east-1b"]
 
   tags = {

@@ -54,9 +54,9 @@ resource "aws_nat_gateway" "this" {
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  count                   = length(var.public_subnet_cidrs)
+  count                   = length(local.public_subnet_cidrs)
   vpc_id                  = aws_vpc.this.id
-  cidr_block              = var.public_subnet_cidrs[count.index]
+  cidr_block              = local.public_subnet_cidrs[count.index]
   availability_zone       = var.azs[count.index]
   map_public_ip_on_launch = false
 
@@ -68,9 +68,9 @@ resource "aws_subnet" "public" {
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  count             = length(var.private_subnet_cidrs)
+  count             = length(local.private_subnet_cidrs)
   vpc_id            = aws_vpc.this.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
+  cidr_block        = local.private_subnet_cidrs[count.index]
   availability_zone = var.azs[count.index]
 
   tags = merge(var.tags, {
@@ -94,7 +94,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count          = length(var.public_subnet_cidrs)
+  count          = length(local.public_subnet_cidrs)
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
@@ -114,7 +114,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count          = length(var.private_subnet_cidrs)
+  count          = length(local.private_subnet_cidrs)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
@@ -132,7 +132,7 @@ resource "aws_flow_log" "this" {
 }
 
 resource "aws_cloudwatch_log_group" "flow_log" {
-  name              = "/aws/vpc/flow-log/${var.project_name}"
+  name              = "/aws/vpc/flow-log/${var.project_name}-${var.environment}"
   retention_in_days = 365
   kms_key_id        = var.kms_key_arn
 
@@ -140,7 +140,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
 }
 
 resource "aws_iam_role" "flow_log" {
-  name = "${var.project_name}-vpc-flow-log-role"
+  name = "${var.project_name}-${var.environment}-vpc-flow-log-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -159,7 +159,7 @@ resource "aws_iam_role" "flow_log" {
 }
 
 resource "aws_iam_role_policy" "flow_log" {
-  name = "${var.project_name}-vpc-flow-log-policy"
+  name = "${var.project_name}-${var.environment}-vpc-flow-log-policy"
   role = aws_iam_role.flow_log.id
 
   policy = jsonencode({
