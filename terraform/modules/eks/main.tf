@@ -149,7 +149,7 @@ resource "aws_eks_node_group" "default" {
   node_group_name = "${var.project_name}-${var.environment}-default"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = var.subnet_ids
-  instance_types  = var.environment == "prod" ? ["m5.xlarge"] : ["t3.medium"]
+  instance_types  = var.environment == "prod" ? ["m5.xlarge"] : ["t3.micro"]
 
   scaling_config {
     desired_size = var.environment == "prod" ? 3 : 2
